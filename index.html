@@ -12,11 +12,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
     
-    <!-- MediaPipe Hands -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.6.1629159505/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
+    <!-- MediaPipe Hands (removed) -->
 
     <style>
         :root { --bg-gradient: radial-gradient(circle at center, #1a0b1a 0%, #000000 100%); }
@@ -176,7 +172,7 @@
         <source src="./src/happy-birthday-155461.mp3" type="audio/mpeg">
     </audio>
 
-    <video class="input_video" playsinline></video>
+    <!-- video element removed (camera functionality disabled) -->
     <div id="canvas-container"></div>
     
     <button id="floating-gift-btn" class="hidden safe-click-area" title="查看祝福">🎁</button>
@@ -187,17 +183,17 @@
             <h1 class="text-6xl mb-2 font-handwriting text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-400 drop-shadow-lg">Happy Birthday</h1>
             <!-- <h2 class="text-4xl mb-6 font-bold text-white tracking-widest neon-text">粉姐</h2> -->
             <div class="space-y-4 text-gray-200 text-lg mb-8 font-light">
-                <p>👋 <b>对着镜头 举起双手</b> 唤醒魔法</p>
-                <p>💨 <b>持续吹气</b> 许下心愿</p>
+                
+                
             </div>
             <button id="start-btn" class="safe-click-area px-12 py-4 bg-gradient-to-r from-pink-600 to-purple-700 rounded-full font-bold text-xl hover:scale-105 active:scale-95 transition transform shadow-[0_0_20px_rgba(255,105,180,0.5)] text-white border border-white/20 cursor-pointer z-50">
-                进入魔法世界
+                点击进入魔法世界
             </button>
             <div id="loading-text" class="hidden mt-4 text-pink-300 text-sm">正在编织星光...</div>
         </div>
     </div>
 
-    <div id="blow-hint"><p class="text-lg font-bold text-pink-200 mb-1">🎤 对着麦克风吹气</p><p class="text-xs text-gray-400">(如果麦克风不灵可以尝试电脑长按空格 · 手机长按屏幕)</p></div>
+    <div id="blow-hint"><p class="text-lg font-bold text-pink-200 mb-1">🎤 对着麦克风使劲吹气</p><p class="text-xs text-gray-400">(如果麦克风不灵可以尝试电脑长按空格 · 手机长按屏幕)</p></div>
     <div id="blow-meter-container"><div id="blow-meter-bar"></div></div>
 
     <div id="top-banner" class="hidden">
@@ -226,29 +222,15 @@
 
         <div id="center-instruction" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none w-full z-0">
             <div class="flex items-center justify-center gap-4 mb-2">
-                <span id="hand-icon" class="text-6xl animate-bounce">👋</span>
-                <h2 id="instruction-text" class="text-6xl md:text-8xl font-bold text-white neon-pulse transition-all duration-700">举起双手</h2>
+                <span id="hand-icon" class="text-6xl animate-bounce">🍰</span>
+                <h2 id="instruction-text" class="text-6xl md:text-8xl font-bold text-white neon-pulse transition-all duration-700">准备好了吗</h2>
             </div>
             <p id="sub-instruction" class="mt-4 text-xl md:text-2xl text-pink-200/80 font-light tracking-[0.3em]">让魔法发生</p>
             <!-- 自动倒数提示文字 -->
             <p id="auto-countdown-text" class="mt-4 text-sm text-pink-200/60 font-light tracking-wider animate-pulse hidden"></p>
         </div>
 
-        <!-- 摄像头预览框 -->
-        <div id="cam-preview-container" class="absolute bottom-6 left-6 z-50 opacity-90 hover:opacity-100">
-            <div class="glass-panel p-2 rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-                <div class="relative w-36 h-28 bg-black/40 rounded-lg overflow-hidden border border-white/5">
-                     <canvas id="output_canvas" width="160" height="120" class="w-full h-full object-cover transform scale-x-[-1]"></canvas>
-                     <div class="absolute top-2 right-2 flex items-center gap-1 bg-black/60 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
-                        <div id="cam-status-dot" class="w-1.5 h-1.5 rounded-full bg-red-500 transition-colors duration-300"></div>
-                        <span id="cam-status-text" class="text-[8px] text-red-400 font-mono">NO HAND</span>
-                     </div>
-                </div>
-                <div class="text-center mt-1.5">
-                    <p class="text-[10px] text-pink-200/70 tracking-widest uppercase scale-90">Camera View</p>
-                </div>
-            </div>
-        </div>
+        <!-- 摄像头预览框 已移除 -->
     </div>
 
     <!-- 惊喜层 -->
@@ -290,7 +272,7 @@
 
                         <!-- 第二页：快递信息 (纯文字，带滚动) -->
                         <div id="card-page-2" class="w-full h-full flex flex-col hidden">
-                            <h3 class="text-xl font-bold text-purple-300 mb-4 font-handwriting text-center mt-2">一点小小的歉意</h3>
+                            <h3 class="text-xl font-bold text-purple-300 mb-4 font-handwriting text-center mt-2">爱你么么哒</h3>
                             <!-- 滚动区域 -->
                             <div id="typewriter-text-2" class="text-left text-gray-200 space-y-3 font-light leading-6 text-sm md:text-base border-l-2 border-purple-500/50 pl-4 mb-4 flex-grow scrollable-text h-full"></div>
                             
@@ -373,8 +355,7 @@
             topBanner: document.getElementById('top-banner'),
             startBtn: document.getElementById('start-btn'),
             loadingText: document.getElementById('loading-text'),
-            camStatusDot: document.getElementById('cam-status-dot'),
-            camStatusText: document.getElementById('cam-status-text'),
+            // camera status removed
             // 卡片相关 UI
             page1: document.getElementById('card-page-1'),
             page2: document.getElementById('card-page-2'),
@@ -761,27 +742,26 @@
         const wishes_part1 = [
             "生日快乐！",
             "",
-            "愿你的生命如这秋天的森林，",
-            "不必追逐繁盛，",
-            "只需一片落叶的从容。",
-            "每一次飘零都不是终结，",
-            "而是为了沉淀下来年更丰盈的色彩。",
-            "愿你的新岁，温润而金黄。",
+            "愿你的生命如这早春的旷野，",
+            "不必急于繁花满枝，",
+            "只需笃定冰雪消融的节律。",
+            "32岁的你,已无需向世界自证,",
+            "而是在静水流深中，生长出更从容的底色。",
+            "愿你的新岁，轻盈如风，内心丰盛。",
             "           —— 送给最特别的你 "
         ];
 
-        // 第二页歉意与快递
+        // 第二页
         const wishes_part2 = [
-            "Sorry，有点惭愧",
-            "因为我没拿捏准时间，还有商家发货时间晚的问题，所以今天Surprise可能来不及送到你手上。😭",
-            "真的很抱歉",
+        "在32岁的这一年,我有好多私心的小愿望想送给你:",
             "",
+            "愿你早日实现那个闪闪发光的舞剧梦；",
+            "愿我们的“小小宝”能健康、幸福、无忧无虑地长大；",
+            "希望你的工作不要太忙，别让压力偷走了你的快乐，",
+            "这样你才能有足够的心情和时间，去解答我那些乱七八糟的小问题，",
+            "然后继续陪我虚度光阴，到处玩耍呀！😆",
             "",
-            "快递编号：",
-            "你可以用这个编号去顺丰官网查一下。",
-            "希望你喜欢这个小小的Surprise！🎉🎂🎈",
-            "记得开箱给我录个视频或者拍个照哦！📸😊",
-            "因为我也还没看过呢！😆"
+            "生日快乐，一桶小盆友。"    
         ];
 
         function typeWriter(textArray, containerId, speed = 50) {
@@ -866,9 +846,9 @@
         
         // --- 自动倒数功能 ---
         function startAutoEntryCountdown() {
-            autoEntrySeconds = 15;
+            autoEntrySeconds = 5;
             ui.autoCountdownText.classList.remove('hidden');
-            ui.autoCountdownText.innerText = `若未检测到手势，${autoEntrySeconds}秒后自动开始...`;
+            
             
             // 清除旧的计时器（如果存在）
             if (autoEntryTimer) clearInterval(autoEntryTimer);
@@ -876,7 +856,7 @@
             autoEntryTimer = setInterval(() => {
                 autoEntrySeconds--;
                 if (autoEntrySeconds > 0) {
-                    ui.autoCountdownText.innerText = `若未检测到手势，${autoEntrySeconds}秒后自动开始...`;
+                    ui.autoCountdownText.innerText = `${autoEntrySeconds}秒后自动开始...`;
                 } else {
                     clearInterval(autoEntryTimer);
                     autoEntryTimer = null;
@@ -912,14 +892,8 @@
                 ui.statusText.innerText = "AUDIO/MIC LIMITED";
             }
 
-            try {
-                log('尝试启动摄像头...');
-                await initCamera();
-                log('摄像头启动成功');
-            } catch (e) {
-                log('摄像头/MediaPipe 失败: ' + e);
-                ui.statusText.innerText = "CAMERA FAILED - USE SPACEBAR";
-            }
+            // 摄像头功能已移除以避免兼容性问题
+            log('摄像头功能已移除');
             
             log('进入主界面...');
             currentState = STATE.IDLE;
@@ -1002,63 +976,7 @@
             if (bgm.paused) bgm.play(); else bgm.pause();
         });
 
-        async function initCamera() {
-            const video = document.getElementsByClassName('input_video')[0];
-            
-            if (typeof Hands === 'undefined' || typeof Camera === 'undefined') {
-                throw new Error("MediaPipe 库未加载");
-            }
-
-            const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`});
-            
-            hands.setOptions({ 
-                maxNumHands: 1, 
-                modelComplexity: 0, 
-                minDetectionConfidence: 0.5, 
-                minTrackingConfidence: 0.5 
-            });
-            
-            hands.onResults((results) => {
-                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                    ui.camStatusDot.className = "w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_8px_#4ade80]";
-                    ui.camStatusText.innerText = "DETECTED";
-                    ui.camStatusText.className = "text-[8px] text-green-400 font-mono font-bold";
-                    
-                    if (currentState === STATE.IDLE) {
-                        startSequence();
-                    }
-                    if (interactionMode === 1) {
-                        const currentHandX = results.multiHandLandmarks[0][9].x; 
-                        const delta = currentHandX - lastHandX;
-                        if (Math.abs(delta) > 0.002) {
-                            // 大幅提高手势控制灵敏度
-                            rotationVelocity += delta * -0.4; 
-                        }
-                        lastHandX = currentHandX;
-                    }
-                } else {
-                    ui.camStatusDot.className = "w-1.5 h-1.5 rounded-full bg-red-500";
-                    ui.camStatusText.innerText = "NO HAND";
-                    ui.camStatusText.className = "text-[8px] text-red-400 font-mono";
-                }
-
-                const ctx = document.getElementById('output_canvas').getContext('2d');
-                ctx.clearRect(0, 0, 160, 120);
-                if(results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                     for (const l of results.multiHandLandmarks) {
-                         drawConnectors(ctx, l, HAND_CONNECTIONS, {color: '#ff69b4', lineWidth: 2});
-                     }
-                }
-            });
-
-            const camera = new Camera(video, { 
-                onFrame: async () => { await hands.send({image: video}); }, 
-                width: 320, 
-                height: 240 
-            });
-            
-            return camera.start();
-        }
+        // 摄像头及 MediaPipe 逻辑已移除
 
         function render() {
             requestAnimationFrame(render);
