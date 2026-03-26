@@ -1,0 +1,89 @@
+:root {
+  color-scheme: dark;
+  --bg-base: #05030b;
+  --bg-layer: rgba(10, 9, 19, 0.76);
+  --panel: rgba(16, 16, 30, 0.62);
+  --panel-border: rgba(255, 255, 255, 0.14);
+  --text-main: #f7f0ff;
+  --success: #8ff1c2;
+  --warning: #ffd48a;
+  --danger: #ff7f8f;
+  --shadow-soft: 0 24px 80px rgba(0, 0, 0, 0.35);
+  --surface-blur: blur(24px);
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 111, 162, 0.15), transparent 28%),
+    radial-gradient(circle at 80% 10%, rgba(155, 184, 255, 0.2), transparent 24%),
+    radial-gradient(circle at 50% 80%, rgba(255, 220, 164, 0.12), transparent 28%),
+    var(--bg-base);
+  color: var(--text-main);
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  color: inherit;
+  background: none;
+}
+
+.glass-panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: var(--surface-blur);
+}
+
+.soft-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 143, 177, 0.46) transparent;
+}
+
+.soft-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.soft-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.soft-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 143, 177, 0.42);
+  border-radius: 999px;
+}
+
+.screen-reader {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

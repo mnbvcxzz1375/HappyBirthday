@@ -1,1 +1,4 @@
-src/1.jpg
+node_modules/
+dist/
+.DS_Store
+.history/
