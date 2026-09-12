@@ -859,7 +859,6 @@
             interactionMode = 1; 
             transitionTo('cake'); 
             ui.statusText.innerText = "INTERACTIVE MODE: DRAG TO ROTATE";
-            ui.typewriter.innerHTML = ""; 
             ui.topBanner.classList.remove('hidden');
         });
 
@@ -938,7 +937,6 @@
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 256;
                 source.connect(analyser);
-                checkAudio();
             } catch (e) {
                 log('麦克风权限被拒绝');
                 ui.statusText.innerText = "MIC DENIED - USE TOUCH/SPACE";
@@ -958,7 +956,6 @@
         document.addEventListener('keyup', (e) => { if(e.code === 'Space') isSpacePressed = false; });
 
         function checkAudio() {
-            requestAnimationFrame(checkAudio);
             if (currentState !== STATE.BLOWING) return;
             let volume = 0;
             if (analyser) {
@@ -1062,6 +1059,7 @@
 
         function render() {
             requestAnimationFrame(render);
+            checkAudio();
             updateParticles();
             renderer.render(scene, camera);
         }
