@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="icon" type="image/png" href="../src/icon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>生日快乐 - 魔法粒子 v6.3 (完整功能修复版)</title>
+    <title>Happy Birthday</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Three.js -->
@@ -123,8 +124,43 @@
             text-align: center; padding: 10px; z-index: 10000; font-size: 14px; display: none;
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        /* 隐藏日志 */
+        
+        #cam-preview-container {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #cam-preview-container:hover {
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        
+        @keyframes neon-pulse {
+            0%, 100% { text-shadow: 0 0 10px rgba(255,105,180,0.7), 0 0 20px rgba(255,105,180,0.5); }
+            50% { text-shadow: 0 0 20px rgba(255,105,180,0.9), 0 0 30px rgba(255,105,180,0.7), 0 0 40px rgba(255,105,180,0.5); }
+        }
+        .neon-pulse { animation: neon-pulse 2s infinite; }
+
+        /* 隐藏的日志容器 */
         #debug-console { display: none; }
+
+        /* 滚动文字区域样式 */
+        .scrollable-text {
+            max-height: 240px; /* 限制高度 */
+            overflow-y: auto;  /* 允许垂直滚动 */
+            padding-right: 10px; /* 给滚动条留点空 */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: rgba(255,105,180,0.5) transparent; /* Firefox */
+        }
+        /* Chrome/Safari 滚动条样式 */
+        .scrollable-text::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollable-text::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollable-text::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 105, 180, 0.5);
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -151,7 +187,7 @@
             <h1 class="text-6xl mb-2 font-handwriting text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-400 drop-shadow-lg">Happy Birthday</h1>
             <!-- <h2 class="text-4xl mb-6 font-bold text-white tracking-widest neon-text">粉姐</h2> -->
             <div class="space-y-4 text-gray-200 text-lg mb-8 font-light">
-                <p>👋 <b>举起双手</b> 唤醒魔法</p>
+                <p>👋 <b>对着镜头 举起双手</b> 唤醒魔法</p>
                 <p>💨 <b>持续吹气</b> 许下心愿</p>
             </div>
             <button id="start-btn" class="safe-click-area px-12 py-4 bg-gradient-to-r from-pink-600 to-purple-700 rounded-full font-bold text-xl hover:scale-105 active:scale-95 transition transform shadow-[0_0_20px_rgba(255,105,180,0.5)] text-white border border-white/20 cursor-pointer z-50">
@@ -161,7 +197,7 @@
         </div>
     </div>
 
-    <div id="blow-hint"><p class="text-lg font-bold text-pink-200 mb-1">🎤 对着麦克风吹气</p><p class="text-xs text-gray-400">(电脑长按空格 · 手机长按屏幕)</p></div>
+    <div id="blow-hint"><p class="text-lg font-bold text-pink-200 mb-1">🎤 对着麦克风吹气</p><p class="text-xs text-gray-400">(如果麦克风不灵可以尝试电脑长按空格 · 手机长按屏幕)</p></div>
     <div id="blow-meter-container"><div id="blow-meter-bar"></div></div>
 
     <div id="top-banner" class="hidden">
@@ -191,13 +227,26 @@
         <div id="center-instruction" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none w-full z-0">
             <div class="flex items-center justify-center gap-4 mb-2">
                 <span id="hand-icon" class="text-6xl animate-bounce">👋</span>
-                <h2 id="instruction-text" class="text-6xl md:text-8xl font-bold text-white neon-text transition-all duration-700">举起双手</h2>
+                <h2 id="instruction-text" class="text-6xl md:text-8xl font-bold text-white neon-pulse transition-all duration-700">举起双手</h2>
             </div>
             <p id="sub-instruction" class="mt-4 text-xl md:text-2xl text-pink-200/80 font-light tracking-[0.3em]">让魔法发生</p>
+            <!-- 自动倒数提示文字 -->
+            <p id="auto-countdown-text" class="mt-4 text-sm text-pink-200/60 font-light tracking-wider animate-pulse hidden"></p>
         </div>
-        <div class="absolute bottom-4 left-4 hidden md:block opacity-30 hover:opacity-100 transition duration-500">
-            <div class="w-24 h-16 glass-panel overflow-hidden">
-                 <canvas id="output_canvas" width="160" height="120" class="w-full h-full object-cover transform scale-x-[-1]"></canvas>
+
+        <!-- 摄像头预览框 -->
+        <div id="cam-preview-container" class="absolute bottom-6 left-6 z-50 opacity-90 hover:opacity-100">
+            <div class="glass-panel p-2 rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+                <div class="relative w-36 h-28 bg-black/40 rounded-lg overflow-hidden border border-white/5">
+                     <canvas id="output_canvas" width="160" height="120" class="w-full h-full object-cover transform scale-x-[-1]"></canvas>
+                     <div class="absolute top-2 right-2 flex items-center gap-1 bg-black/60 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                        <div id="cam-status-dot" class="w-1.5 h-1.5 rounded-full bg-red-500 transition-colors duration-300"></div>
+                        <span id="cam-status-text" class="text-[8px] text-red-400 font-mono">NO HAND</span>
+                     </div>
+                </div>
+                <div class="text-center mt-1.5">
+                    <p class="text-[10px] text-pink-200/70 tracking-widest uppercase scale-90">Camera View</p>
+                </div>
             </div>
         </div>
     </div>
@@ -206,13 +255,15 @@
     <div id="surprise-layer" class="hidden">
         <button id="reveal-btn" class="safe-click-area hidden px-10 py-5 bg-white text-pink-600 rounded-full font-bold text-2xl shadow-[0_0_60px_rgba(255,105,180,0.8)] hover:scale-105 transition-transform duration-300 animate-float">🎁 打开礼物</button>
         
+        <!-- 卡片容器 -->
         <div id="flip-card-container" class="hidden flip-card w-full max-w-sm md:max-w-md aspect-[3/4] mx-6 pop-in">
             <div class="flip-card-inner">
-                <!-- 正面 -->
+                
+                <!-- 正面：引导开启 -->
                 <div class="flip-card-front glass-panel bg-gradient-to-br from-pink-500/40 to-purple-600/40 border border-white/30 p-1">
                     <div class="bg-black/80 rounded-[1rem] p-6 h-full flex flex-col backdrop-blur-md">
                         <div class="w-full aspect-[4/3] bg-gray-800 rounded-lg mb-6 overflow-hidden relative border border-white/10 shadow-inner">
-                            <img src="https://picb6.photophoto.cn/28/919/28919416_1.jpg" class="w-full h-full object-cover" alt="Gift">
+                            <img src="https://bpic.588ku.com/Templet_origin_pic/05/19/43/8c971b1364922e551b4fbccb2d5719d2.jpg" class="w-full h-full object-cover" alt="Gift">
                             <div class="absolute bottom-3 left-4 text-white/90 font-handwriting text-2xl">Happy Birthday!</div>
                         </div>
                         <div class="text-center mt-auto mb-8">
@@ -221,13 +272,33 @@
                         </div>
                     </div>
                 </div>
-                <!-- 背面 -->
+
+                <!-- 背面：祝福内容 (分页显示) -->
                 <div class="flip-card-back glass-panel bg-gradient-to-br from-purple-500/40 to-blue-600/40 border border-white/30 p-1">
                     <div class="bg-black/90 rounded-[1rem] p-8 h-full flex flex-col items-center justify-center backdrop-blur-md">
-                        <div class="mb-6 text-5xl animate-bounce">💌</div>
-                        <h3 class="text-2xl font-bold text-pink-300 mb-6 font-handwriting">致最特别的你</h3>
-                        <div id="typewriter-text" class="text-left text-gray-200 space-y-4 font-light leading-7 text-sm md:text-base border-l-2 border-pink-500/50 pl-4 mb-8 min-h-[120px] w-full"></div>
-                        <button id="close-card-btn" class="safe-click-area px-8 py-2 rounded-full border border-white/30 text-gray-300 hover:bg-white/10 hover:text-white transition text-sm">收起卡片</button>
+                        
+                        <!-- 第一页：生日祝福 (带照片) -->
+                        <div id="card-page-1" class="w-full h-full flex flex-col">
+                            <div class="mb-4 text-5xl animate-bounce text-center">💌</div>
+                            <h3 class="text-2xl font-bold text-pink-300 mb-6 font-handwriting text-center">致最特别的你</h3>
+                            <div id="typewriter-text-1" class="text-left text-gray-200 space-y-4 font-light leading-7 text-sm md:text-base border-l-2 border-pink-500/50 pl-4 mb-4 flex-grow scrollable-text"></div>
+                            
+                            <button id="to-page-2-btn" class="safe-click-area px-6 py-2 mt-auto rounded-full bg-white/10 text-pink-200 hover:bg-white/20 transition text-sm flex items-center justify-center mx-auto">
+                                还有话对你说... <span class="ml-2">👉</span>
+                            </button>
+                        </div>
+
+                        <!-- 第二页：快递信息 (纯文字，带滚动) -->
+                        <div id="card-page-2" class="w-full h-full flex flex-col hidden">
+                            <h3 class="text-xl font-bold text-purple-300 mb-4 font-handwriting text-center mt-2">一点小小的歉意</h3>
+                            <!-- 滚动区域 -->
+                            <div id="typewriter-text-2" class="text-left text-gray-200 space-y-3 font-light leading-6 text-sm md:text-base border-l-2 border-purple-500/50 pl-4 mb-4 flex-grow scrollable-text h-full"></div>
+                            
+                            <button id="close-card-btn" class="safe-click-area px-8 py-2 mt-auto rounded-full border border-white/30 text-gray-300 hover:bg-white/10 hover:text-white transition text-sm mx-auto">
+                                收起卡片
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -246,12 +317,9 @@
         }
 
         const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        log(`环境检测: Mobile=${IS_MOBILE}, Protocol=${window.location.protocol}`);
         
-        // --- 环境检测 ---
         if (window.location.protocol === 'file:') {
             document.getElementById('protocol-warning').style.display = 'block';
-            log('错误: 检测到 file:// 协议，摄像头将无法使用');
         }
 
         // --- 全局变量与配置 ---
@@ -274,6 +342,11 @@
         let isDragging = false;
         let previousMouseX = 0;
         let lastHandX = 0;
+        let autoRotateSpeed = 0.005;
+
+        // --- 自动倒数变量 ---
+        let autoEntryTimer = null;
+        let autoEntrySeconds = 10;
         
         let audioContext, analyser;
         const bgm = document.getElementById('bgm');
@@ -293,21 +366,29 @@
             revealBtn: document.getElementById('reveal-btn'),
             floatingGiftBtn: document.getElementById('floating-gift-btn'),
             cardContainer: document.getElementById('flip-card-container'), 
-            typewriter: document.getElementById('typewriter-text'),
             nextBtn: document.getElementById('next-surprise-btn'),
             closeBtn: document.getElementById('close-card-btn'),
             settingsPanel: document.getElementById('settings-panel'),
             settingsToggle: document.getElementById('settings-toggle'),
             topBanner: document.getElementById('top-banner'),
             startBtn: document.getElementById('start-btn'),
-            loadingText: document.getElementById('loading-text')
+            loadingText: document.getElementById('loading-text'),
+            camStatusDot: document.getElementById('cam-status-dot'),
+            camStatusText: document.getElementById('cam-status-text'),
+            // 卡片相关 UI
+            page1: document.getElementById('card-page-1'),
+            page2: document.getElementById('card-page-2'),
+            toPage2Btn: document.getElementById('to-page-2-btn'),
+            textContainer1: document.getElementById('typewriter-text-1'),
+            textContainer2: document.getElementById('typewriter-text-2'),
+            // 自动倒数文本
+            autoCountdownText: document.getElementById('auto-countdown-text')
         };
 
-        // 立即初始化 Three.js 以显示启动背景
+        // 立即初始化 Three.js
         initThree();
 
         function initThree() {
-            log('初始化 3D 场景...');
             const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
             scene.fog = new THREE.FogExp2(0x000000, 0.002);
@@ -335,7 +416,7 @@
             const onMove = (x) => {
                 if(isDragging && interactionMode === 1) {
                     const delta = x - previousMouseX;
-                    const sensitivity = IS_MOBILE ? 0.005 : 0.003; 
+                    const sensitivity = IS_MOBILE ? 0.015 : 0.008; 
                     rotationVelocity = delta * sensitivity;
                     particleSystem.rotation.y += rotationVelocity;
                     previousMouseX = x;
@@ -355,7 +436,6 @@
             window.addEventListener('touchend', onEnd);
             
             render();
-            log('3D 场景渲染已启动');
         }
 
         function createParticles() {
@@ -503,7 +583,6 @@
             });
         }
 
-        // --- 核心逻辑修复：粒子更新 ---
         function updateParticles() {
             const positions = particleSystem.geometry.attributes.position.array;
             const colors = particleSystem.geometry.attributes.color.array;
@@ -521,43 +600,32 @@
                     else if (p.layer === 'cream') p.targetColor.set(CAKE_THEME.cream);
                 }
 
-                // 1. INTRO 状态 (启动页波浪背景 - 保留效果)
                 if (currentState === STATE.INTRO) {
                     const angle = p.angle + time * 0.05;
-                    const r = p.radius + Math.sin(time + i * 0.01) * 10;
+                    const r = p.radius + Math.sin(time * 0.5 + i * 0.01) * 10;
                     target.x = Math.cos(angle) * r * 3;
                     target.z = Math.sin(angle) * r * 3;
-                    
-                    // 修复：使用 target.x 生成波浪，解决 x is not defined 报错
                     target.y = p.baseTarget.y + Math.sin(time * 0.5 + target.x * 0.05) * 20; 
-                    
                     const hue = 0.8 + (Math.sin(time * 0.1 + target.x * 0.01) * 0.1); 
                     p.targetColor.setHSL(hue, 0.7, 0.6);
                 }
-                // 2. 庆祝背景 (收起卡片后爆炸)
                 else if (currentState === STATE.CELEBRATION && p.type === 'bg') {
                     const angle = p.angle + time * 0.1 + p.orbitSpeed;
-                    const r = p.radius + Math.sin(time * 0.5 + i) * 5;
+                    const r = p.radius + Math.sin(time + i) * 5;
                     target.x = Math.cos(angle) * r;
                     target.z = Math.sin(angle) * r;
                     target.y = p.baseTarget.y + Math.sin(time + p.noiseOffset) * 2;
                     const hue = 0.9 + (Math.sin(time + i * 0.01) * 0.05); 
                     p.targetColor.setHSL(hue, 0.8, 0.6);
                 } 
-                // 3. 待机波浪状态 (仅 IDLE 状态显示波浪，吹气时保持蛋糕形状)
-                // 修复关键：移除了 STATE.BLOWING 和 interactionMode，防止蛋糕被波浪覆盖
                 else if (currentState === STATE.IDLE) {
                     const angle = p.angle + time * 0.1;
                     const r = p.radius + Math.sin(time + i * 0.01)*2;
                     target.x = Math.cos(angle) * r;
                     target.z = Math.sin(angle) * r;
-                    
-                    // 修复：使用 target.x 生成波浪
                     target.y = p.baseTarget.y + Math.sin(time + target.x * 0.05) * 5; 
-                    
                     p.targetColor.set(0x333333); 
                 }
-                // 其他状态 (CAKE, BLOWING, INTERACTIVE) 将直接使用 transitionTo 设置的坐标 (target)
 
                 if (p.type === 'flame') {
                     const noise = Math.sin(time * 6 + p.noiseOffset) * 0.6;
@@ -595,9 +663,8 @@
             
             if (interactionMode === 1) {
                 if (!isDragging) {
-                    rotationVelocity *= 0.95; 
-                    if(Math.abs(rotationVelocity) < 0.0001) rotationVelocity = 0;
-                    particleSystem.rotation.y += rotationVelocity;
+                    rotationVelocity *= 0.96; 
+                    particleSystem.rotation.y += rotationVelocity + autoRotateSpeed;
                 }
             } else if (currentState !== STATE.IDLE && currentState !== STATE.INTRO) {
                 particleSystem.rotation.y = Math.sin(time * 0.15) * 0.15;
@@ -611,6 +678,14 @@
 
         function startSequence() {
             if (currentState !== STATE.IDLE || transitionLock) return;
+                        
+            // 清除自动倒数计时器
+            if (autoEntryTimer) {
+                clearInterval(autoEntryTimer);
+                autoEntryTimer = null;
+            }
+            ui.autoCountdownText.classList.add('hidden');
+
             log('检测到手势，开始倒计时序列');
             transitionLock = true;
             currentState = STATE.COUNTDOWN;
@@ -682,31 +757,54 @@
             ui.settingsPanel.style.display = (display === 'none' || display === '') ? 'flex' : 'none';
         });
 
-        const wishes = [
+        // 第一页祝福语
+        const wishes_part1 = [
             "生日快乐！",
-            "愿你遍历山河，觉得人间值得。",
-            "愿你眼里的星星永远发亮，",
-            "心中的太阳永远滚烫。",
-            "新的一岁，请继续自由、热烈、闪闪发光！"
+            "",
+            "愿你的生命如这秋天的森林，",
+            "不必追逐繁盛，",
+            "只需一片落叶的从容。",
+            "每一次飘零都不是终结，",
+            "而是为了沉淀下来年更丰盈的色彩。",
+            "愿你的新岁，温润而金黄。",
+            "           —— 送给最特别的你 "
         ];
 
-        function startTypewriter() {
+        // 第二页歉意与快递
+        const wishes_part2 = [
+            "Sorry，有点惭愧",
+            "因为我没拿捏准时间，还有商家发货时间晚的问题，所以今天Surprise可能来不及送到你手上。😭",
+            "真的很抱歉",
+            "",
+            "",
+            "快递编号：",
+            "你可以用这个编号去顺丰官网查一下。",
+            "希望你喜欢这个小小的Surprise！🎉🎂🎈",
+            "记得开箱给我录个视频或者拍个照哦！📸😊",
+            "因为我也还没看过呢！😆"
+        ];
+
+        function typeWriter(textArray, containerId, speed = 50) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
             let lineIndex = 0;
             let charIndex = 0;
-            ui.typewriter.innerHTML = "";
+
             function type() {
-                if (lineIndex < wishes.length) {
-                    const currentLine = wishes[lineIndex];
+                if (lineIndex < textArray.length) {
+                    const currentLine = textArray[lineIndex];
                     if (charIndex < currentLine.length) {
-                        ui.typewriter.innerHTML += currentLine.charAt(charIndex);
+                        container.innerHTML += currentLine.charAt(charIndex);
                         charIndex++;
-                        setTimeout(type, 100);
+                        setTimeout(type, speed);
                     } else {
-                        ui.typewriter.innerHTML += "<br>";
+                        container.innerHTML += "<br>";
                         lineIndex++;
                         charIndex = 0;
                         setTimeout(type, 300);
                     }
+                    // 自动滚动到底部
+                    container.scrollTop = container.scrollHeight;
                 }
             }
             type();
@@ -718,6 +816,25 @@
             ui.cardContainer.classList.remove('hidden');
         });
 
+        // "What's the surprise" 按钮 -> 翻转到背面 (第一页)
+        ui.nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            ui.cardContainer.classList.add('flipped');
+            // 显示第一页，隐藏第二页
+            ui.page1.classList.remove('hidden');
+            ui.page2.classList.add('hidden');
+            setTimeout(() => typeWriter(wishes_part1, 'typewriter-text-1'), 400);
+        });
+
+        // "还有话对你说" 按钮 -> 切换到第二页
+        ui.toPage2Btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            ui.page1.classList.add('hidden');
+            ui.page2.classList.remove('hidden');
+            // 重新触发第二页的打字机
+            setTimeout(() => typeWriter(wishes_part2, 'typewriter-text-2', 30), 100);
+        });
+
         ui.floatingGiftBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             ui.floatingGiftBtn.classList.add('hidden'); 
@@ -726,14 +843,12 @@
             interactionMode = 0;
             ui.cardContainer.classList.remove('hidden');
             ui.cardContainer.classList.remove('flipped');
+            // 重置为第一页状态
+            ui.page1.classList.remove('hidden');
+            ui.page2.classList.add('hidden');
         });
 
-        ui.nextBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            ui.cardContainer.classList.add('flipped');
-            setTimeout(startTypewriter, 400);
-        });
-
+        // "收起卡片" 按钮
         ui.closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             ui.mainText.innerText = ""; 
@@ -741,31 +856,53 @@
             ui.surpriseLayer.classList.add('hidden');    
             ui.floatingGiftBtn.classList.remove('hidden');
             
-            // 修复关键：收起卡片后，变回蛋糕形状供用户旋转
             interactionMode = 1; 
             transitionTo('cake'); 
-            
             ui.statusText.innerText = "INTERACTIVE MODE: DRAG TO ROTATE";
             ui.typewriter.innerHTML = ""; 
             ui.topBanner.classList.remove('hidden');
         });
 
-        // 按钮点击事件处理 (调试核心)
+        
+        // --- 自动倒数功能 ---
+        function startAutoEntryCountdown() {
+            autoEntrySeconds = 15;
+            ui.autoCountdownText.classList.remove('hidden');
+            ui.autoCountdownText.innerText = `若未检测到手势，${autoEntrySeconds}秒后自动开始...`;
+            
+            // 清除旧的计时器（如果存在）
+            if (autoEntryTimer) clearInterval(autoEntryTimer);
+
+            autoEntryTimer = setInterval(() => {
+                autoEntrySeconds--;
+                if (autoEntrySeconds > 0) {
+                    ui.autoCountdownText.innerText = `若未检测到手势，${autoEntrySeconds}秒后自动开始...`;
+                } else {
+                    clearInterval(autoEntryTimer);
+                    autoEntryTimer = null;
+                    ui.autoCountdownText.classList.add('hidden');
+                    // 只有在还是 IDLE 状态时才自动开始，防止用户刚好在此时触发了手势
+                    if (currentState === STATE.IDLE) {
+                        log('自动倒数结束，触发开始序列');
+                        startSequence();
+                    }
+                }
+            }, 1000);
+        }
+
+        // 按钮点击事件处理
         ui.startBtn.addEventListener('click', async function() {
             log('点击了进入按钮...');
             const btn = this;
             
-            // 资源检测
             if (typeof Hands === 'undefined') {
-                log('警告: MediaPipe (Hands) 库尚未加载完成。尝试继续，但手势可能无法工作。');
-                // 不再直接 return，允许用户进入（即使没有摄像头）
+                log('警告: MediaPipe 库加载延迟。');
             }
 
             btn.innerHTML = '<span class="animate-pulse">Loading...</span>';
             btn.disabled = true;
             ui.loadingText.style.display = 'block';
             
-            // 1. 尝试播放音频
             try {
                 fadeAudioIn();
                 await initAudio();
@@ -775,7 +912,6 @@
                 ui.statusText.innerText = "AUDIO/MIC LIMITED";
             }
 
-            // 2. 尝试初始化摄像头
             try {
                 log('尝试启动摄像头...');
                 await initCamera();
@@ -783,14 +919,15 @@
             } catch (e) {
                 log('摄像头/MediaPipe 失败: ' + e);
                 ui.statusText.innerText = "CAMERA FAILED - USE SPACEBAR";
-                // 即使失败，也继续进入
             }
             
-            // 3. 进入主界面
             log('进入主界面...');
             currentState = STATE.IDLE;
             ui.startOverlay.classList.add('hidden');
             ui.uiLayer.style.display = 'flex';
+
+            // 启动自动倒数
+            startAutoEntryCountdown();
         });
 
         async function initAudio() {
@@ -803,7 +940,7 @@
                 source.connect(analyser);
                 checkAudio();
             } catch (e) {
-                log('麦克风权限被拒绝或不支持');
+                log('麦克风权限被拒绝');
                 ui.statusText.innerText = "MIC DENIED - USE TOUCH/SPACE";
                 throw e;
             }
@@ -832,7 +969,7 @@
             }
             if (volume > VISUAL_CONFIG.blowThreshold || isSpacePressed || isTouching) {
                 isBlowing = true;
-                blowProgress += 0.5; 
+                blowProgress += 0.8; 
             } else {
                 isBlowing = false;
                 blowProgress -= 0.3; 
@@ -843,7 +980,6 @@
         }
 
         function fadeAudioIn() {
-            // 使用 Base64，不再依赖网络链接
             const playPromise = bgm.play();
             if (playPromise !== undefined) {
                 playPromise.then(_ => {
@@ -869,7 +1005,6 @@
         async function initCamera() {
             const video = document.getElementsByClassName('input_video')[0];
             
-            // 再次检查
             if (typeof Hands === 'undefined' || typeof Camera === 'undefined') {
                 throw new Error("MediaPipe 库未加载");
             }
@@ -878,23 +1013,35 @@
             
             hands.setOptions({ 
                 maxNumHands: 1, 
-                modelComplexity: 0, // 轻量级
+                modelComplexity: 0, 
                 minDetectionConfidence: 0.5, 
                 minTrackingConfidence: 0.5 
             });
             
             hands.onResults((results) => {
-                if (currentState === STATE.IDLE && results.multiHandLandmarks.length > 0) {
-                    startSequence();
-                }
-                if (interactionMode === 1 && results.multiHandLandmarks.length > 0) {
-                    const currentHandX = results.multiHandLandmarks[0][9].x; 
-                    const delta = currentHandX - lastHandX;
-                    if (Math.abs(delta) > 0.002) {
-                        rotationVelocity += delta * -0.2; 
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    ui.camStatusDot.className = "w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_8px_#4ade80]";
+                    ui.camStatusText.innerText = "DETECTED";
+                    ui.camStatusText.className = "text-[8px] text-green-400 font-mono font-bold";
+                    
+                    if (currentState === STATE.IDLE) {
+                        startSequence();
                     }
-                    lastHandX = currentHandX;
+                    if (interactionMode === 1) {
+                        const currentHandX = results.multiHandLandmarks[0][9].x; 
+                        const delta = currentHandX - lastHandX;
+                        if (Math.abs(delta) > 0.002) {
+                            // 大幅提高手势控制灵敏度
+                            rotationVelocity += delta * -0.4; 
+                        }
+                        lastHandX = currentHandX;
+                    }
+                } else {
+                    ui.camStatusDot.className = "w-1.5 h-1.5 rounded-full bg-red-500";
+                    ui.camStatusText.innerText = "NO HAND";
+                    ui.camStatusText.className = "text-[8px] text-red-400 font-mono";
                 }
+
                 const ctx = document.getElementById('output_canvas').getContext('2d');
                 ctx.clearRect(0, 0, 160, 120);
                 if(results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
