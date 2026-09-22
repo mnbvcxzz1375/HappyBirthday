@@ -27,6 +27,10 @@
 
 + 修改歌曲：将下载好的歌放在src文件夹下，将`index.html`176行的代码，修改为你的歌曲。
    - `<source src="./src/你的歌曲" type="audio/mpeg">`
+   - 
++ 修改贺卡中的图片：将下载好的图片放在src文件夹下或者到网上照一张图片右键点击复制链接，将`index.html`266行的代码，修改为你的图片，其他图片的操作类似。
+   - 下载的图片：`<img src="./src/你的图片" class="w-full h-full object-cover" alt="Gift">`
+   - 复制的链接：`<img src="你复制的图片的链接" class="w-full h-full object-cover" alt="Gift">`
 + 修改卡片内容：看到`index.html`的760行开始有注释标注好，哪些是第一个卡片，哪些是第二个卡片。
 
 + 替换HTML里面的内容替换为你自己的内容，然后在 github pages 或者其它一些托管网站上部署(如 netlify / Vercel)即可。
